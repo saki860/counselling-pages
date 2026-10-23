@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>学生相談支援システム</title>
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>💭</text></svg>" />
+  <link rel="stylesheet" href="./styles.css" />
+</head>
+<body>
+  <main class="app-container">
+    <h1 class="app-title">💭 学生相談支援システム</h1>
+
+    <!-- APIキー設定画面 -->
+    <section id="api-key-section" class="section-block">
+      <div class="alert alert-info">🔑 Google Gemini APIキーを入力してください</div>
+
+      <div class="alert alert-success">
+        <strong>使用モデル:</strong>
+        <ul>
+          <li>通常: Gemini 3.5 Flash-Lite</li>
+          <li>応答に失敗した場合: Gemini 2.5 Flash</li>
+          <li>利用可能なモデル・料金・利用上限はGoogle AI Studioで確認してください。</li>
+        </ul>
+      </div>
+
+      <form id="api-key-form" class="api-key-form" novalidate>
+        <div class="form-group">
+          <div class="label-row">
+            <label for="api-key-input" class="form-label">APIキー</label>
+            <span class="help-text" title="APIキーはGoogle AI Studioで取得できます">APIキーはGoogle AI Studioで取得できます</span>
+          </div>
+          <div class="password-input-wrapper">
+            <input
+              id="api-key-input"
+              type="password"
+              class="text-input"
+              placeholder="AIza..."
+              autocomplete="off"
+              required
+            />
+            <button
+              type="button"
+              id="toggle-api-key-visibility"
+              class="icon-btn"
+              aria-label="APIキーの表示を切り替え"
+              title="表示 / 非表示"
+            >👁️</button>
+          </div>
+        </div>
+
+        <div id="api-key-error" class="alert alert-error hidden" role="alert">
+          APIキーを入力してください
+        </div>
+
+        <div class="grid-2">
+          <button type="submit" class="btn btn-primary">APIキーを設定</button>
+          <a
+            href="https://aistudio.google.com/app/apikey"
+            target="_blank"
+            rel="noopener noreferrer"
+            class="btn btn-secondary"
+          >APIキーを取得</a>
+        </div>
+      </form>
+
+      <hr class="divider" />
+
+      <div class="about-card">
+        <h3>📱 このシステムについて</h3>
+        <p>学生の皆さんが安心して相談できる場を提供します。</p>
+
+        <h4>特徴:</h4>
+        <ul>
+          <li>✅ 傾聴モード・解決策提案モードの切り替え</li>
+          <li>✅ あなたのニーズに合わせた応答</li>
+          <li>✅ 必要に応じて専門家への連携</li>
+        </ul>
+
+        <h4>注意事項:</h4>
+        <ul>
+          <li>⚠️ このシステムは専門的な医療やカウンセリングの代替ではありません</li>
+          <li>⚠️ 緊急時は必ず専門家にご相談ください</li>
+          <li>🔒 相談内容は安全に管理されます</li>
+        </ul>
+      </div>
+    </section>
+
+    <!-- メインチャットエリア -->
+    <section id="chat-section" class="section-block hidden">
+      <div class="topbar-grid">
+        <div class="topbar-title">
+          <h3>💬 相談窓口</h3>
+        </div>
+        <button type="button" id="summary-btn" class="btn btn-secondary" disabled>
+          📝 まとめ
+        </button>
+        <button type="button" id="info-btn" class="btn btn-secondary">
+          ℹ️ 情報
+        </button>
+        <button type="button" id="reset-btn" class="btn btn-secondary">
+          🔄 リセット
+        </button>
+      </div>
+
+      <hr class="divider" />
+
+      <!-- モード切り替えUI -->
+      <div class="grid-2">
+        <button type="button" id="mode-listening-btn" class="btn btn-primary">
+          🫂 傾聴モード ✅
+        </button>
+        <button type="button" id="mode-solution-btn" class="btn btn-secondary">
+          💡 解決策提案モード
+        </button>
+      </div>
+      <p id="mode-caption" class="caption-text">
+        🫂 <strong>傾聴モード</strong>: 気持ちに寄り添い、じっくり話を聞きます。アドバイスより共感を大切にします。
+      </p>
+
+      <!-- システム情報パネル -->
+      <details id="info-panel" class="expander hidden" open>
+        <summary class="expander-summary">📊 システム情報</summary>
+        <div class="expander-body">
+          <div id="info-dynamic-metrics" class="metrics-stack hidden">
+            <div id="detected-needs-box" class="alert alert-info"></div>
+            <div id="current-mode-box" class="alert alert-info"></div>
+          </div>
+
+          <div class="alert alert-warning">
+            <strong>緊急時の連絡先:</strong>
+            <ul>
+              <li>いのちの電話: 0120-783-556</li>
+              <li>学校のカウンセラー</li>
+              <li>保健室の先生</li>
+            </ul>
+          </div>
+
+          <button type="button" id="change-api-key-btn" class="btn btn-secondary">
+            APIキーを変更
+          </button>
+        </div>
+      </details>
+
+      <!-- まとめ表示パネル -->
+      <details id="summary-panel" class="expander hidden" open>
+        <summary class="expander-summary">📝 会話のまとめ</summary>
+        <div class="expander-body">
+          <div id="summary-content" class="summary-content"></div>
+          <div class="grid-2">
+            <button type="button" id="close-summary-btn" class="btn btn-secondary">
+              ✅ 閉じる
+            </button>
+            <button type="button" id="download-summary-btn" class="btn btn-secondary">
+              💾 保存
+            </button>
+          </div>
+        </div>
+      </details>
+
+      <hr class="divider" />
+
+      <!-- チャット履歴表示 -->
+      <div id="chat-container" class="chat-container" aria-live="polite"></div>
+
+      <!-- スピナー表示 -->
+      <div id="loading-indicator" class="loading-indicator hidden" role="status">
+        <span class="spinner" aria-hidden="true"></span>
+        <span id="loading-text">考えています...</span>
+      </div>
+
+      <hr class="divider" />
+
+      <!-- ユーザー入力 -->
+      <form id="chat-form" class="chat-input-form">
+        <input
+          id="chat-input"
+          type="text"
+          class="chat-input"
+          placeholder="相談内容を入力してください..."
+          autocomplete="off"
+          required
+        />
+        <button type="submit" id="send-btn" class="btn btn-primary send-btn" aria-label="送信">
+          送信
+        </button>
+      </form>
+    </section>
+
+    <hr class="divider" />
+    <footer class="app-footer">
+      <p class="caption-text">
+        💡 このシステムは学生の相談支援を目的としています。緊急時は必ず専門家にご相談ください。
+      </p>
+    </footer>
+  </main>
+
+  <script type="module" src="./app.js"></script>
+</body>
+</html>
